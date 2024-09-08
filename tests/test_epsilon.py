@@ -65,5 +65,37 @@ def test_exploration_exploitation():
         chosen_machine = epsilon_greedy.simulate_one_step(1, np.random.choice([0, 1]))
         
 
+def test_select_machine():
+    epsilon_greedy = EpsilonGreedy(epsilon=0.2)
+
+    try:
+        epsilon_greedy.select_machine()
+    except AssertionError as e:
+        assert str(e) == "Machines are needed in order to select a machine"
+
+    epsilon_greedy.simulate_one_step(0, 1.0)  
+    epsilon_greedy.simulate_one_step(1, 0.5)  
+
+    np.random.seed(42)  
+
+    selected_machines = []
+    for _ in range(1000):
+        selected_machine = epsilon_greedy.select_machine()
+        selected_machines.append(selected_machine)
+
+    machine_0_selections = selected_machines.count(0)
+    machine_1_selections = selected_machines.count(1)
+
+    assert machine_0_selections > machine_1_selections, (
+        "Machine 0 should be selected more often since it has a higher experimental mean"
+    )
+    total_selections = len(selected_machines)
+    machine_0_probability = machine_0_selections / total_selections
+    expected_probability = 1 - epsilon_greedy.epsilon
+
+    assert np.isclose(machine_0_probability, expected_probability, atol=0.05), (
+        f"Machine 0 was selected with probability {machine_0_probability}, "
+        f"but expected {expected_probability}"
+    )
 
 
